@@ -1,20 +1,24 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { OpenAIApi } from 'openai';
-import { configuration } from '../../utils/constants';
+import { Configuration } from "openai";
+// import { configuration } from '../../utils/constants';
 
 type Data = {
   // input: string
-  result: string
+  result: string,
+  keywords: any
 }
 
-const openai = new OpenAIApi(configuration);
+// const openai = new OpenAIApi(configuration);
+const openai = new OpenAIApi(new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+  })
+);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   const { input } = req.body
   console.log('input', input)
-
-  // console.log(generateBranding(input));
 
   const response = await openai.createCompletion({
     model: 'text-davinci-002',
@@ -30,7 +34,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
   if (suggestion === undefined) throw new Error('No suggestion found')
 
-  res.status(200).json({ result: suggestion })
+  const responseKeywords = await openai.createCompletion({
+    model: 'text-davinci-002',
+    prompt: `Generate related branding keywords for '${input}':`,
+    temperature: 0.85,
+    max_tokens: 32,
+    top_p: 1,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+  })
+
+  let keywordsText = responseKeywords.data?.choices?.[0].text
+  let keywordsArray = keywordsText?.trim().toLowerCase().replace(/[^A-Z0-9]+/ig, "-").split('-')
+
+  if (keywordsText === undefined) throw new Error('No suggestion keywords found')
+
+  res.status(200).json({ result: suggestion, keywords: keywordsArray })
 }
 
 async function generateBranding(input: string) {

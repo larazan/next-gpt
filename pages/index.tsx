@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react'
 // import styles from '../styles/Home.module.css'
 import { MoonLoader } from 'react-spinners'
 import logo from "../public/copykittLogo.svg";
+import { CopyToClipboard } from "react-copy-to-clipboard";
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -40,11 +41,13 @@ export default function Home() {
         body: JSON.stringify({ input }),
       })
 
-      const suggestion: { result: string } = await res.json()
-      const { result } = suggestion
+      const suggestion: { result: string, keywords: any } = await res.json()
+      const { result, keywords } = suggestion
       console.log('result', result)
+      console.log('keywords', keywords)
 
       setSuggestion(result)
+      setKeywords(keywords)
     } catch (error) {
       console.log(error)
     } finally {
@@ -58,13 +61,13 @@ export default function Home() {
 
   const tags = ['tag', 'tag1', 'tag2']
   const keywordElements = [];
-  for (let i = 0; i < tags.length; i++) {
+  for (let i = 0; i < keywords.length; i++) {
     const element = (
       <div
         key={i}
         className="bg-teal-200 p-1 text-teal-700 px-2 text-sm rounded-md"
       >
-        #{tags[i]}
+        #{keywords[i]}
       </div>
     );
     keywordElements.push(element);
@@ -79,18 +82,21 @@ export default function Home() {
       <div className="bg-slate-700 p-4 my-3 rounded-md">
         <div className='flex justify-between'>
           <div className="text-slate-400 text-sm font-bold mb-4">{label}</div>
-          <div className='cursor-pointer text-slate-400 hover:text-white'>
+          <CopyToClipboard text={body}>
+          <button className='cursor-pointer text-slate-400 hover:text-white'>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" />
             </svg>
 
-          </div>
+          </button>
+          </CopyToClipboard>
         </div>
         
         <div className='leading-tight font-semibold'>{body}</div>
       </div>
     );
   };
+  
 
   return (
     <>
@@ -160,7 +166,7 @@ export default function Home() {
             {suggestion && (
               <div className="mt-5 mb-6">
                 {resultSection("Branding Copy", suggestion)}
-                {/* {resultSection("Keywords", keywordElementsHolder)} */}
+                {resultSection("Keywords", keywordElementsHolder)}
               </div>
             )}
 
