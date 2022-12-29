@@ -4,8 +4,8 @@ import { OpenAIApi } from 'openai';
 import { configuration } from '../../utils/constants';
 
 type Data = {
-  // input: string;
-  // result: string;
+  // input: string
+  result: string
 }
 
 const openai = new OpenAIApi(configuration);
@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   const { input } = req.body
   console.log('input', input)
 
-  console.log(generateBranding(input));
+  // console.log(generateBranding(input));
 
   const response = await openai.createCompletion({
     model: 'text-davinci-002',
