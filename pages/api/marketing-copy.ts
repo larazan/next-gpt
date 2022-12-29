@@ -4,7 +4,8 @@ import { OpenAIApi } from 'openai';
 import { configuration } from '../../utils/constants';
 
 type Data = {
-  input: string
+  // input: string;
+  // result: string;
 }
 
 const openai = new OpenAIApi(configuration);
@@ -50,22 +51,22 @@ async function generateBranding(input: string) {
   return suggestion
 }
 
-async function generateKeywords(input: string) {
-  const response = await openai.createCompletion({
-    model: 'text-davinci-002',
-    prompt: `Generate related branding keywords for '${input}':`,
-    temperature: 0.85,
-    max_tokens: 32,
-    top_p: 1,
-    frequency_penalty: 0,
-    presence_penalty: 0,
-  })
+// async function generateKeywords(input: string) {
+//   const response = await openai.createCompletion({
+//     model: 'text-davinci-002',
+//     prompt: `Generate related branding keywords for '${input}':`,
+//     temperature: 0.85,
+//     max_tokens: 32,
+//     top_p: 1,
+//     frequency_penalty: 0,
+//     presence_penalty: 0,
+//   })
 
-  let keywordsText = response.data?.choices?.[0].text
-  let keywordsArray = keywordsText?.trim().toLowerCase()
-  keywordsArray = keywordsText?.replace(/[^A-Z0-9]+/ig, "-").split('-')
+//   let keywordsText = response.data?.choices?.[0].text
+//   let keywordsArray = keywordsText?.trim().toLowerCase()
+//   keywordsArray = keywordsText?.replace(/[^A-Z0-9]+/ig, "-").split('-')
 
-  if (keywordsText === undefined) throw new Error('No suggestion keywords found')
+//   if (keywordsText === undefined) throw new Error('No suggestion keywords found')
 
-  return keywordsArray
-}
+//   return keywordsArray
+// }
