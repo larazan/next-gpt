@@ -1,11 +1,97 @@
+
 import Head from 'next/head'
 import Image from 'next/image'
 import { Inter } from '@next/font/google'
-import styles from '../styles/Home.module.css'
+import { useState, useEffect } from 'react'
+// import styles from '../styles/Home.module.css'
+import { MoonLoader } from 'react-spinners'
+import logo from "../public/copykittLogo.svg";
 
 const inter = Inter({ subsets: ['latin'] })
 
 export default function Home() {
+  const [input, setInput] = useState('')
+  const [error, setError] = useState(false)
+  const [suggestion, setSuggestion] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const [snippet, setSnippet] = useState("");
+  const [keywords, setKeywords] = useState([]);
+  const [hasResult, setHasResult] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (input.length < 30) setError(false)
+  }, [input])
+
+  const submit = async () => {
+    // Check if character limit is exceeded
+    if (input.length > 30) return setError(true)
+
+    // Set loading state
+    setLoading(true)
+
+    try {
+      const res = await fetch('/api/marketing-copy', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ input }),
+      })
+
+      const suggestion: { result: string } = await res.json()
+      const { result } = suggestion
+      console.log('result', result)
+
+      setSuggestion(result)
+    } catch (error) {
+      console.log(error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  let statusColor = "text-slate-500";
+  let statusText = null;
+  const gradientTextStyle = "text-white text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500 font-light w-fit mx-auto";
+
+  const tags = ['tag', 'tag1', 'tag2']
+  const keywordElements = [];
+  for (let i = 0; i < tags.length; i++) {
+    const element = (
+      <div
+        key={i}
+        className="bg-teal-200 p-1 text-teal-700 px-2 text-sm rounded-md"
+      >
+        #{tags[i]}
+      </div>
+    );
+    keywordElements.push(element);
+  }
+
+  const keywordElementsHolder = (
+    <div className="flex flex-wrap gap-2">{keywordElements}</div>
+  );
+
+  const resultSection = (label: string, body: any) => {
+    return (
+      <div className="bg-slate-700 p-4 my-3 rounded-md">
+        <div className='flex justify-between'>
+          <div className="text-slate-400 text-sm font-bold mb-4">{label}</div>
+          <div className='cursor-pointer text-slate-400 hover:text-white'>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" />
+            </svg>
+
+          </div>
+        </div>
+        
+        <div className='leading-tight font-semibold'>{body}</div>
+      </div>
+    );
+  };
+
   return (
     <>
       <Head>
@@ -14,110 +100,74 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className={styles.main}>
-        <div className={styles.description}>
-          <p>
-            Get started by editing&nbsp;
-            <code className={styles.code}>pages/index.tsx</code>
-          </p>
-          <div>
-            <a
-              href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              By{' '}
-              <Image
-                src="/vercel.svg"
-                alt="Vercel Logo"
-                className={styles.vercelLogo}
-                width={100}
-                height={24}
-                priority
+
+      <div className="h-screen flex">
+        <div className="max-w-md m-auto p-2">
+          <div className="bg-slate-800 p-6 rounded-md text-white">
+            <div className="text-center my-6">
+              <Image src={logo} width={42} height={42} alt={""} />
+              <h1 className={gradientTextStyle + " text-3xl font-light"}>
+                CopyKitt
+              </h1>
+              <div className={gradientTextStyle}>Your AI branding assistant</div>
+            </div>
+
+            <div className="mb-6 text-slate-400 leading-tight">
+              <p>Tell me what your brand is about and I will generate copy and keywords for you.</p>
+            </div>
+            <div className='relative w-full'>
+              <textarea
+                rows={3}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                className='w-full border-2 border-gray-300 bg-white p-3 rounded-md text-sm focus:outline-teal-400 focus:outline text-slate-700 resize-none'
+                placeholder='Enter your topic here'
               />
-            </a>
+            </div>
+       
+            <div className={`flex ${error ? 'justify-between' : 'justify-end'} `}>
+              {/* // Error message  */}
+              {error && (
+                <p className='text-xs pt-1 text-red-500 leading-tight'>Character limit exceeded, please enter less text</p>
+              )}
+              <div className={statusColor + " flex justify-between my-0 mb-4 text-sm"}>
+                <div>{statusText}</div>
+                <div className={` ${
+                      input.length > 30 ? 'text-red-500' : 'text-gray-400'
+                    } bottom-2 right-2 text-xs`}>
+                  <span>{input.length}</span>/30
+                </div>
+              </div>
+            </div>
+
+            <button
+              className="bg-gradient-to-r font-bold from-teal-400 to-blue-500 disabled:opacity-50 w-full p-2 rounded-md text-lg"
+              type='button'
+              onClick={submit}
+              // disabled={props.isLoading || !isPromptValid}
+            >
+              {loading ? (
+                  <div className='flex justify-center items-center gap-4'>
+                    <p>Loading...</p>
+                    <MoonLoader size={20} color='white' />
+                  </div>
+                ) : (
+                  'Generate'
+                )}
+            </button>
+
+            {/* // Output field for marketing copy  */}
+            {suggestion && (
+              <div className="mt-5 mb-6">
+                {resultSection("Branding Copy", suggestion)}
+                {/* {resultSection("Keywords", keywordElementsHolder)} */}
+              </div>
+            )}
+
           </div>
-        </div>
-
-        <div className={styles.center}>
-          <Image
-            className={styles.logo}
-            src="/next.svg"
-            alt="Next.js Logo"
-            width={180}
-            height={37}
-            priority
-          />
-          <div className={styles.thirteen}>
-            <Image
-              src="/thirteen.svg"
-              alt="13"
-              width={40}
-              height={31}
-              priority
-            />
-          </div>
-        </div>
-
-        <div className={styles.grid}>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Docs <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Find in-depth information about Next.js features and&nbsp;API.
-            </p>
-          </a>
-
-          <a
-            href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Learn <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Learn about Next.js in an interactive course with&nbsp;quizzes!
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Templates <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Discover and deploy boilerplate example Next.js&nbsp;projects.
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Deploy <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Instantly deploy your Next.js site to a shareable URL
-              with&nbsp;Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
+      </div>
+    </div>
+    
     </>
   )
 }
